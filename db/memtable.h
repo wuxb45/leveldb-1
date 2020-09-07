@@ -11,6 +11,8 @@
 #include "db/skiplist.h"
 #include "leveldb/db.h"
 #include "util/arena.h"
+#include "lib.h"
+#include "wh.h"
 
 namespace leveldb {
 
@@ -64,7 +66,6 @@ class MemTable {
 
  private:
   friend class MemTableIterator;
-  friend class MemTableBackwardIterator;
 
   struct KeyComparator {
     const InternalKeyComparator comparator;
@@ -80,6 +81,7 @@ class MemTable {
   int refs_;
   Arena arena_;
   Table table_;
+  struct wormhole * wh_;
 };
 
 }  // namespace leveldb

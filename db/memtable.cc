@@ -19,9 +19,14 @@ static Slice GetLengthPrefixedSlice(const char* data) {
 }
 
 MemTable::MemTable(const InternalKeyComparator& comparator)
-    : comparator_(comparator), refs_(0), table_(comparator_, &arena_) {}
+    : comparator_(comparator), refs_(0), table_(comparator_, &arena_) {
+  wh_ = wormhole_create(&kvmap_mm_ndf);
+}
 
-MemTable::~MemTable() { assert(refs_ == 0); }
+MemTable::~MemTable() {
+  assert(refs_ == 0);
+  wormhole_destroy(wh_);
+}
 
 size_t MemTable::ApproximateMemoryUsage() { return arena_.MemoryUsage(); }
 
