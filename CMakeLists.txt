@@ -6,6 +6,12 @@ cmake_minimum_required(VERSION 3.9)
 # Keep the version below in sync with the one in db.h
 project(leveldb VERSION 1.22.0 LANGUAGES C CXX)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_EXTENSIONS ON)
+# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+
 # C standard can be overridden when this is used as a sub-project.
 if(NOT CMAKE_C_STANDARD)
   # This project can use C11, but will gracefully decay down to C89.
@@ -115,6 +121,22 @@ endif(BUILD_SHARED_LIBS)
 
 # Must be included before CMAKE_INSTALL_INCLUDEDIR is used.
 include(GNUInstallDirs)
+
+# wormhole
+
+add_library(wormhole "")
+target_sources(wormhole
+  PRIVATE
+    "third_party/wormhole/lib.c"
+    "third_party/wormhole/lib.h"
+    "third_party/wormhole/wh.c"
+    "third_party/wormhole/wh.h"
+    "third_party/wormhole/ctypes.h"
+)
+target_include_directories(wormhole
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/third_party/wormhole>
+)
 
 add_library(leveldb "")
 target_sources(leveldb
@@ -234,6 +256,7 @@ target_include_directories(leveldb
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/third_party/wormhole>
 )
 
 set_target_properties(leveldb
@@ -318,7 +341,7 @@ if(LEVELDB_BUILD_TESTS)
 
         "${test_file}"
     )
-    target_link_libraries("${test_target_name}" leveldb gmock gtest)
+    target_link_libraries("${test_target_name}" leveldb gmock gtest wormhole)
     target_compile_definitions("${test_target_name}"
       PRIVATE
         ${LEVELDB_PLATFORM_NAME}=1
@@ -395,7 +418,7 @@ if(LEVELDB_BUILD_BENCHMARKS)
 
         "${bench_file}"
     )
-    target_link_libraries("${bench_target_name}" leveldb gmock gtest)
+    target_link_libraries("${bench_target_name}" leveldb gmock gtest wormhole)
     target_compile_definitions("${bench_target_name}"
       PRIVATE
         ${LEVELDB_PLATFORM_NAME}=1
